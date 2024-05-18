@@ -38,6 +38,7 @@ const sendVerificationEmail = async (email, token) => {
     auth: {
       user: "REDACTED_CREDENTIAL",
       pass: "REDACTED_CREDENTIAL"
+      
     },
   });
 
