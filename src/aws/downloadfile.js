@@ -13,7 +13,7 @@ import AWS from 'aws-sdk';
         Bucket: "doctor-project-website",
         Key: "Prescription.pdf"
         };
-        console.log(s3.getObject(params));
+        console.log ("Test working code")
     try {
         // Get the object data from S3
         const data = await s3.getObject(params).promise();
