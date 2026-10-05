@@ -1,10 +1,13 @@
 export const settingsimg = async (file) => {
   try {
-    // Fetch pre-signed URL from the server
-    const response = await fetch("http://localhost:3333/s3Url", {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Please sign in before uploading an image.");
+    if (!file.type) throw new Error("This image type is not supported.");
+
+    const response = await fetch(`http://localhost:3333/s3Url?contentType=${encodeURIComponent(file.type)}`, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        Authorization: token,
       },
     });
 
@@ -13,16 +16,15 @@ export const settingsimg = async (file) => {
     }
 
     const { url } = await response.json();
-    console.log(`Pre-signed URL for ${file.name}:`, url);
-
     // Post the image to the bucket
-    await fetch(url, {
+    const uploadResponse = await fetch(url, {
       method: "PUT",
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": file.type,
       },
       body: file,
     });
+    if (!uploadResponse.ok) throw new Error("The image upload failed.");
 
     const imageUrl = url.split('?')[0];
     console.log(`Image URL: ${imageUrl}`);

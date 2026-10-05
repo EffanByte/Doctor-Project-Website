@@ -1,12 +1,10 @@
 import React from 'react'
 import './PDFbutton.css'
-import downloadS3File from '../../../aws/downloadfile'
 function PDFbutton() {
   return (
     <div className='pdfButtonContainer'>
-    <a>
-        <button className='PDFbutton' onClick={downloadS3File}>Download Prescription</button>
-    </a>
+      <button className='PDFbutton' disabled>Download Prescription</button>
+      <p role='status'>Prescription downloads are temporarily unavailable.</p>
 </div>
   )
 }

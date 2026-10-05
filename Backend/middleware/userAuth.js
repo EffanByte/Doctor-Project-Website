@@ -1,10 +1,9 @@
+import { requiredEnv } from '../config/env.js';
 import jwt from "jsonwebtoken";
 import user from "../models/userModel.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 
-dotenv.config();
-
+const jwtSecret = requiredEnv('JWT_SECRET');
 async function userAuth(req, res, next) {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
@@ -13,9 +12,8 @@ async function userAuth(req, res, next) {
     //   return res.status(401).json({ message: "Unauthorized" });
     // }
     try {
-      const payload = jwt.verify(token, "REDACTED_CREDENTIAL");
+      const payload = jwt.verify(token, jwtSecret);
       req.User = payload.auth_user;
-      console.log(req.User);
       next();
     } catch (error) {
       return res.status(401).json({ message: "Unauthorized" });

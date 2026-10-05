@@ -1,8 +1,11 @@
+import { requiredEnv } from '../config/env.js';
 import ContactUs from "../models/ContactUsModel.js";
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
 
-dotenv.config();
+const smtpUser = requiredEnv('SMTP_USER');
+const smtpPassword = requiredEnv('SMTP_PASSWORD');
+const mailFrom = requiredEnv('MAIL_FROM');
+const contactTo = requiredEnv('CONTACT_TO');
 const sendContactUsMail = async (email, name, message) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -11,14 +14,14 @@ const sendContactUsMail = async (email, name, message) => {
 
     service: "gmail",
     auth: {
-      user: "REDACTED_CREDENTIAL",
-      pass: "REDACTED_CREDENTIAL",
+      user: smtpUser,
+      pass: smtpPassword,
     },
   });
 
   const mailOptions = {
-    from: "REDACTED_CREDENTIAL",
-    to: "abrehman4163@gmail.com",
+    from: mailFrom,
+    to: contactTo,
     subject: "USER MESSAGE",
     text: `Someone has contacted you through the contact us form. Here are the details:`,
     html: ` <p><strong>Name:</strong>${name}</p>

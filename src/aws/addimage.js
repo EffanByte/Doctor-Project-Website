@@ -13,24 +13,29 @@ export const addImage = (selectedFiles, handleNewUrls) => {
       selectedFiles[imageInput.name] = [];
       for (const file of files) {
         try {
-
           // Fetch pre-signed URL from the server
-          const { url } = await fetch("http://localhost:3333/s3Url", {
+          const token = localStorage.getItem("token");
+          if (!token) throw new Error("Please sign in before uploading files.");
+          if (!file.type) throw new Error("This file type is not supported.");
+
+          const signedResponse = await fetch(`http://localhost:3333/s3Url?contentType=${encodeURIComponent(file.type)}`, {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
+              Authorization: token,
             }
-          }).then(res => res.json());
-
+          });
+          if (!signedResponse.ok) throw new Error("Could not prepare the file upload.");
+          const { url } = await signedResponse.json();
 
           // Post the image to the bucket
-          await fetch(url, {
+          const uploadResponse = await fetch(url, {
             method: "PUT",
             headers: {
-              "Content-Type": "multipart/form-data",
+              "Content-Type": file.type,
             },
             body: file
           });
+          if (!uploadResponse.ok) throw new Error("The file upload failed.");
 
           const imageUrl = url.split('?')[0];
           console.log(`Image URL: ${imageUrl}`);

@@ -1,11 +1,14 @@
+import { requiredEnv } from '../config/env.js';
 import user from "../models/userModel.js";
 import bcryptjs from "bcryptjs";
 import nodemailer from "nodemailer";
 import jsonwebtoken from "jsonwebtoken";
 import crypto from "crypto";
-import dotenv from "dotenv";
 
-dotenv.config();
+const jwtSecret = requiredEnv('JWT_SECRET');
+const smtpUser = requiredEnv('SMTP_USER');
+const smtpPassword = requiredEnv('SMTP_PASSWORD');
+const mailFrom = requiredEnv('MAIL_FROM');
 // import {validationResult ,body} from "express-validator";
 
 // saveVerificationToken
@@ -36,14 +39,14 @@ const sendVerificationEmail = async (email, token) => {
     secure: false,
     service: "gmail",
     auth: {
-      user: "REDACTED_CREDENTIAL",
-      pass: "REDACTED_CREDENTIAL"
+      user: smtpUser,
+      pass: smtpPassword
 
     },
   });
 
   const mailOptions = {
-    from: "REDACTED_CREDENTIAL",
+    from: mailFrom,
     to: email,
     subject: "Verify your email address",
     text: `Please click the following link to verify your email address: http://localhost:3000/hospital/verifyUser/${token}`,
@@ -55,7 +58,6 @@ const sendVerificationEmail = async (email, token) => {
       console.error("Error sending email:", error);
       return false;
     } else {
-      console.log("Email sent:", info.response);
       return true;
     }
   });
@@ -104,7 +106,6 @@ const verifyUser = async (req, res) => {
         "verificationToken.token": null,
       },
     );
-    console.log(verifiedUser)
     // Check if user was found and updated
     if (verifiedUser) {
       return res.status(200).json({ message: "Account verified", success: true });
@@ -122,14 +123,11 @@ const verifyUser = async (req, res) => {
 // signin path => "/Hospital/signin"
 const signin = async (req, res) => {
   try {
-    console.log(req.body)
     const { username, password } = req.body;
     if (!username | !password) {
       return res.status(202).json({ message: "Incomplete content" });
     } else {
       const auth_user = await user.findOne({ username });
-      console.log(auth_user);
-      console.log("hey....")
       if (!auth_user) {
         const success = false;
         return res
@@ -150,7 +148,7 @@ const signin = async (req, res) => {
         } else {
           auth_user.password = undefined;
           const success = true;
-          const token = jsonwebtoken.sign({ auth_user }, "REDACTED_CREDENTIAL", { expiresIn: "10h" });
+          const token = jsonwebtoken.sign({ auth_user }, jwtSecret, { expiresIn: "10h" });
           res.cookie("authorization", `Bearer ${token}`);
           return res.status(200).json({ token: `Bearer ${token}`, message: "login successfully", success, role: auth_user.role });
         }
@@ -173,7 +171,6 @@ const updatePatient = async (req, res) => {
             const key = Object.keys(item)[0];
             userData[key] = item[key];
         });
-        console.log(userData);
   const { 
     patientFullName,
     patientCNIC,
@@ -217,7 +214,6 @@ const updatePatient = async (req, res) => {
     } catch (error) {
       success = false;
       return res.status(400).json({ message: "error", errors: [error.message], success });
-      console.log(error.message);
     }
   }
 };
@@ -240,7 +236,6 @@ const getPatientByUserId = async (req, res) => {
 //update password
 const updatePassword = async (req, res) => {
   const User = req.User;
-  console.log(User);
   const { oldPassword, newPassword } = req.body;
   let success;
   if (!oldPassword || !newPassword) {
@@ -314,7 +309,6 @@ const getUserinfoByToken = async (req, res) => {
   const User = req.User;
   try{
     const existUser = await user.findOne({ _id: User._id });
-    console.log(existUser)
     const {
             patientFullName,
             cnic,

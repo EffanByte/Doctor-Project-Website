@@ -6,21 +6,27 @@ import Navbar from '../../Components/Navbar/Navbar'
 function Chatbot() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
-  const [showHeading, setShowHeading] = useState(true); // State variable to manage heading display
 
   async function generateAnswer() {
+    if (!question.trim()) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAnswer('Please sign in to use the chatbot.');
+      return;
+    }
+
     setAnswer("Loading...");
     try {
-      const response = await axios.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=REDACTED_CREDENTIAL", {
-        contents: [
-          { parts: [{ text: question }] }
-        ]
-      });
-      const strippedAnswer = response.data.candidates[0].content.parts[0].text.replace(/\*/g, ''); // Remove asterisks from the response
+      const response = await axios.post('http://localhost:3333/chatbot/answer',
+        { question: question.trim() },
+        { headers: { Authorization: token } }
+      );
+      const strippedAnswer = response.data.answer.replace(/\*/g, '');
       setAnswer(strippedAnswer);
-      setShowHeading(false); // Hide heading after receiving an answer
     } catch (error) {
-      console.error("Error fetching answer:", error);
+      setAnswer(error.response?.status === 401
+        ? 'Please sign in to use the chatbot.'
+        : 'The chatbot is temporarily unavailable. Please try again.');
     }
   }
 
